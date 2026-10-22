@@ -35,16 +35,44 @@ an immutable pinned commit, not a moving `develop` branch.
 
 ## Build and test
 
-Requirements: CMake 3.23+, C/C++ compiler supporting C++17, Git, and
-Python 3 (for snapshot tooling). No Qt dependency yet. The pinned OWA 5.2.4
-release supports optional OpenMP acceleration; enable the toolchain's OpenMP
-runtime if available.
+Requirements: CMake 3.23+, Ninja, a C/C++ compiler supporting C++17,
+Git, and Python 3 (for snapshot tooling). No Qt dependency yet. The pinned
+OWA 5.2.4 engine requires an OpenMP-capable C compiler and runtime on Linux.
+
+The recommended Linux builds use the **Ninja** generator through CMake
+presets. From the project root, configure, build, and test Debug with:
 
 ```bash
-cmake -S . -B build-linux -DCMAKE_BUILD_TYPE=Debug
-cmake --build build-linux --parallel
-ctest --test-dir build-linux --output-on-failure
+cmake --preset linux-debug
+cmake --build --preset linux-debug --parallel
+ctest --preset linux-debug
 ```
+
+For an optimized Release build, use `linux-release` instead:
+
+```bash
+cmake --preset linux-release
+cmake --build --preset linux-release --parallel
+ctest --preset linux-release
+```
+
+Each preset has its own ignored build directory (`build-linux-debug` and
+`build-linux-release`). This also avoids the CMake generator-mismatch error
+if an older `build-linux` directory was configured with Unix Makefiles.
+If configuring manually, pass `-G Ninja` when *first* configuring a build
+directory, for example:
+
+```bash
+cmake -S . -B build-linux-ninja -G Ninja -DCMAKE_BUILD_TYPE=Debug
+cmake --build build-linux-ninja --parallel
+ctest --test-dir build-linux-ninja --output-on-failure
+```
+
+Ninja generally reduces build orchestration overhead, especially for
+incremental builds; actual speedups depend on the compiler and workload.
+The generator choice applies to standalone builds of this repository;
+when included by AOWIS-SERVER-STANDALONE, the parent project selects the
+CMake generator.
 
 The default upstream `BUILD_SHARED_LIBS=ON` builds `swmm5` as a shared library;
 `aowis-swmm-core` is currently a static C++ convenience library which links
@@ -54,7 +82,7 @@ or standalone integration testing.
 
 The smoke test runs an actual small SWMM drainage scenario in
 `tests/data/basic.inp`, verifying the return code and nonempty `.rpt` and
-`.out` results. It writes to `build-linux/smoke-output/`, never into sources.
+`.out` results. It writes to the selected build directory's `smoke-output/`, never into sources.
 The solver's CMake may generate an export header under the submodule source
 directory; this is upstream behavior and should not be committed as an AOWIS
 engine modification.
