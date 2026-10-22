@@ -54,3 +54,10 @@ compile_commands.json
 *creator.user*
 
 *_qmlcache.qrc
+
+# Standalone SWMM smoke-test output and build trees
+build-*/
+cmake-build-*/
+*.rpt
+*.out
+*.hsf
