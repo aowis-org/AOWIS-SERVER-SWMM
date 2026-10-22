@@ -1,0 +1,3 @@
+[submodule "external/swmm"]
+	path = external/swmm
+	url = https://github.com/aowis-org/pyStormwater-Management-Model.git
